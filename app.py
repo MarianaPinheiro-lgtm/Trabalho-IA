@@ -15,24 +15,21 @@ def webhook():
     print("📩 Mensagem recebida:", data)
 
     # ── Extrai o texto da mensagem ──────────────────────────────────────────────
-    message = data.get("message", {})
-    # A Evolution API pode enviar em campos diferentes dependendo do tipo
+    inner = data.get("data", {})
+    message = inner.get("message", {})
     texto = (
-        message.get("conversation")          # texto simples
-        or message.get("extendedTextMessage", {}).get("text")  # texto longo
-        or message.get("text", "")
-    )
+    message.get("conversation")
+    or message.get("extendedTextMessage", {}).get("text")
+    or message.get("text", "")
+)
 
     if not texto:
         return jsonify({"status": "no message"}), 200
 
-    # ── Extrai o número do remetente ────────────────────────────────────────────
-    # formato: "5511999999999@s.whatsapp.net"
-    remote_jid = data.get("key", {}).get("remoteJid", "desconhecido")
-    telefone = remote_jid.split("@")[0]   # fica só: "5511999999999"
+    remote_jid = inner.get("key", {}).get("remoteJid", "desconhecido")
+    telefone = remote_jid.split("@")[0]
 
-    # Ignora mensagens enviadas pelo próprio bot
-    from_me = data.get("key", {}).get("fromMe", False)
+    from_me = inner.get("key", {}).get("fromMe", False)
     if from_me:
         return jsonify({"status": "own message, ignored"}), 200
 

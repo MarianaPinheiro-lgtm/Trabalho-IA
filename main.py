@@ -7,6 +7,7 @@ import requests
 import os
 import json
 from datetime import datetime
+from google_calendar import criar_evento_google
 
 from database import (
     init_db as init_eventos_db,
@@ -224,18 +225,27 @@ def montar_resposta(dados: dict) -> str:
         if not data_iso:
             return "Não consegui entender a data. Use o formato DD/MM/AAAA, por exemplo: 08/05/2026."
 
-        evento_id = salvar_evento(evento, data, hora, local)
+        evento_id = salvar_evento(evento, data_iso, hora, local)
 
         if evento_id is None:
             return f"Esse horário já está ocupado em {local}. Tente outro horário ou local."
 
-        return f"Evento confirmado! {evento} marcado para {data} às {hora}, em {local}."
+        criar_evento_google(
+            titulo=evento,
+            data_iso=data_iso,
+            hora=hora,
+            local=local
+        )
+
+        return f"Evento confirmado! {evento} marcado para {data_br} às {hora}, em {local}. 📅"
+
+    
 
     elif intencao == "consultar":
         if not data:
             return "Qual dia você quer consultar?"
 
-        eventos = listar_eventos_do_dia(data)
+        eventos = listar_eventos_do_dia(data_iso)
 
         if not eventos:
             return f"Não encontrei eventos confirmados para {data}."
@@ -255,7 +265,7 @@ def montar_resposta(dados: dict) -> str:
         if not data_iso:
             return "Não consegui entender a data. Use o formato DD/MM/AAAA, por exemplo: 08/05/2026."
 
-        cancelado = cancelar_evento(data, hora, local)
+        cancelado = cancelar_evento(data_iso, hora, local)
 
         if cancelado:
             return f"Evento de {data} às {hora} cancelado com sucesso."
@@ -279,7 +289,7 @@ def enviar_whatsapp(telefone: str, texto: str):
     headers = {"apikey": EVOLUTION_KEY, "Content-Type": "application/json"}
     payload = {
         "number": telefone,
-        "textMessage": {"text": texto},
+        "textMessage": texto,
     }
     try:
         r = requests.post(url, json=payload, headers=headers, timeout=10)
@@ -311,19 +321,20 @@ async def receber_mensagem(body: MensagemEntrada):
         historico = buscar_historico(body.telefone)
 
         # 2. Gera resposta com IA
-        resposta = chamar_groq(historico, body.mensagem)
+        dados = chamar_groq(historico, body.mensagem)
+        resposta_texto = montar_resposta(dados)
 
         # 3. Salva no banco
         salvar_mensagem(body.telefone, "user", body.mensagem)
-        salvar_mensagem(body.telefone, "assistant", resposta)
+        salvar_mensagem(body.telefone, "assistant", resposta_texto)
 
         # 4. Envia de volta ao WhatsApp
-        enviar_whatsapp(body.telefone, resposta)
+        enviar_whatsapp(body.telefone, resposta_texto)
 
         return {
             "status": "ok",
             "dados_interpretados": dados,
-            "resposta": resposta
+            "resposta": resposta_texto
         }
 
     except Exception as e:
