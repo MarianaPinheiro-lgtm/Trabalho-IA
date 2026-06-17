@@ -2,11 +2,15 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 BACKEND_URL = "http://localhost:8000/mensagem"  # FastAPI
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 
 @app.route("/webhook", methods=["POST"])
@@ -14,24 +18,15 @@ def webhook():
     data = request.json
     print("📩 Mensagem recebida:", data)
 
-    # ── Extrai o texto da mensagem ──────────────────────────────────────────────
-    inner = data.get("data", {})
-    message = inner.get("message", {})
-    texto = (
-    message.get("conversation")
-    or message.get("extendedTextMessage", {}).get("text")
-    or message.get("text", "")
-)
+    # ✅ Formato Telegram
+    message = data.get("message", {})
+    texto = message.get("text", "")
+    chat_id = message.get("chat", {}).get("id")
 
-    if not texto:
+    if not texto or not chat_id:
         return jsonify({"status": "no message"}), 200
 
-    remote_jid = inner.get("key", {}).get("remoteJid", "desconhecido")
-    telefone = remote_jid.split("@")[0]
-
-    from_me = inner.get("key", {}).get("fromMe", False)
-    if from_me:
-        return jsonify({"status": "own message, ignored"}), 200
+    telefone = str(chat_id)  # usamos o chat_id no lugar do telefone
 
     # ── Envia para o FastAPI ────────────────────────────────────────────────────
     try:

@@ -1,7 +1,7 @@
-fastapi==0.115.0
-uvicorn==0.30.6
-groq==0.11.0
-psycopg2-binary==2.9.9
-python-dotenv==1.0.1
-requests==2.33.1
-pydantic==2.8.2
+fastapi==0.137.1
+uvicorn==0.49.0
+groq==1.4.0
+psycopg2-binary==2.9.12
+python-dotenv==1.2.2
+requests==2.34.2
+pydantic==2.13.4

@@ -18,15 +18,14 @@ from database import (
 
 load_dotenv()
 
-app = FastAPI(title="Bot WhatsApp - Agenda com IA")
+app = FastAPI(title="Bot Telegram - Agenda com IA")
 
 # ─── Clientes ──────────────────────────────────────────────────────────────────
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-EVOLUTION_URL  = os.getenv("EVOLUTION_API_URL")   # ex: http://localhost:8080
-EVOLUTION_KEY  = os.getenv("EVOLUTION_API_KEY")
-INSTANCE_NAME  = os.getenv("EVOLUTION_INSTANCE")  # nome da instância criada no painel
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_URL   = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
 # ─── Datas BR / Banco ──────────────────────────────────────────────────────────
 
@@ -278,26 +277,23 @@ def montar_resposta(dados: dict) -> str:
     else:
         return "Não entendi muito bem. Você quer marcar, consultar ou cancelar um evento?"
 
-
-def enviar_whatsapp(telefone: str, texto: str):
-    """Envia a resposta de volta ao WhatsApp via Evolution API."""
-    if not EVOLUTION_URL or not EVOLUTION_KEY or not INSTANCE_NAME:
-        print("Variáveis da Evolution API não configuradas. Pulando envio.")
+def enviar_telegram(chat_id: str, texto: str):
+    """Envia a resposta de volta ao Telegram."""
+    if not TELEGRAM_TOKEN:
+        print("TELEGRAM_BOT_TOKEN não configurado. Pulando envio.")
         return
 
-    url = f"{EVOLUTION_URL}/message/sendText/{INSTANCE_NAME}"
-    headers = {"apikey": EVOLUTION_KEY, "Content-Type": "application/json"}
+    url = f"{TELEGRAM_URL}/sendMessage"
     payload = {
-        "number": telefone,
-        "textMessage": texto,
+        "chat_id": chat_id,
+        "text": texto
     }
     try:
-        r = requests.post(url, json=payload, headers=headers, timeout=10)
+        r = requests.post(url, json=payload, timeout=10)
         r.raise_for_status()
-        print(f"Resposta enviada para {telefone}")
+        print(f"Resposta enviada para {chat_id}")
     except Exception as e:
-        print(f"Erro ao enviar para WhatsApp: {e}")
-
+        print(f"Erro ao enviar para Telegram: {e}")
 
 # ─── Modelos Pydantic ───────────────────────────────────────────────────────────
 
@@ -312,7 +308,7 @@ class MensagemEntrada(BaseModel):
 async def receber_mensagem(body: MensagemEntrada):
     """
     Rota principal chamada pelo webhook Flask.
-    Fluxo: recebe texto → busca histórico → chama Groq → salva → envia WhatsApp.
+    Fluxo: recebe texto → busca histórico → chama Groq → salva → envia Telegram.
     """
     print(f"📨 [{body.telefone}] {body.mensagem}")
 
@@ -329,7 +325,7 @@ async def receber_mensagem(body: MensagemEntrada):
         salvar_mensagem(body.telefone, "assistant", resposta_texto)
 
         # 4. Envia de volta ao WhatsApp
-        enviar_whatsapp(body.telefone, resposta_texto)
+        enviar_telegram(body.telefone, resposta_texto)
 
         return {
             "status": "ok",
