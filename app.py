@@ -17,12 +17,12 @@ def webhook():
     texto = message.get("text")
 
     if not texto:
-        return jsonify({"status": "no message"}), 200
+        return jsonify({"status": "sem mensagem"}), 200
 
     chat_id = message.get("chat", {}).get("id")
 
     if not chat_id:
-        return jsonify({"status": "no chat id"}), 200
+        return jsonify({"status": "chat_id não encontrado"}), 200
 
     try:
         requests.post(
@@ -34,7 +34,7 @@ def webhook():
             timeout=30
         )
     except Exception as e:
-        print("Erro ao enviar para backend:", e)
+        print("Erro ao enviar para o backend:", e)
 
     return jsonify({"status": "ok"}), 200
 
