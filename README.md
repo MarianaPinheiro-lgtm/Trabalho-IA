@@ -2,49 +2,51 @@
 
 ## Sobre o Projeto
 
-Este projeto consiste no desenvolvimento de um chatbot inteligente para o Telegram capaz de auxiliar usuários no gerenciamento de compromissos por meio de linguagem natural.
+Este projeto consiste em um chatbot inteligente desenvolvido para o Telegram, com o objetivo de auxiliar usuários no agendamento, consulta e cancelamento de compromissos por meio de linguagem natural.
 
-O sistema utiliza Inteligência Artificial para interpretar mensagens enviadas pelo usuário, identificar sua intenção e realizar operações de cadastro, consulta e cancelamento de compromissos.
-
-A aplicação foi desenvolvida utilizando Python, FastAPI, Flask, PostgreSQL e a API da Groq, proporcionando uma comunicação simples e intuitiva através do Telegram.
+O sistema utiliza Inteligência Artificial com a API da Groq para interpretar as mensagens enviadas pelo usuário e identificar a intenção da solicitação. Após interpretar a mensagem, o chatbot registra o compromisso no banco de dados PostgreSQL e também cria o evento no Google Calendar.
 
 
-## Objetivos
+## Objetivo
 
-O projeto tem como objetivo desenvolver um assistente virtual capaz de:
+Desenvolver um assistente virtual capaz de:
 
-* Interpretar mensagens escritas em linguagem natural;
-* Identificar a intenção do usuário;
-* Agendar compromissos;
-* Consultar compromissos cadastrados;
-* Cancelar compromissos existentes;
-* Armazenar o histórico de conversas para fornecer contexto durante as interações.
+* Interpretar mensagens em linguagem natural;
+* Identificar se o usuário deseja marcar, consultar ou cancelar um compromisso;
+* Solicitar informações quando a mensagem estiver incompleta;
+* Armazenar histórico de conversa;
+* Registrar compromissos no banco de dados;
+* Criar eventos no Google Calendar;
+* Responder ao usuário diretamente pelo Telegram.
 
 
 ## Tecnologias Utilizadas
 
-* Python 3
-* FastAPI
+* Python
 * Flask
+* FastAPI
 * PostgreSQL
-* Groq API (Llama 3.3 70B Versatile)
+* Groq API
 * Telegram Bot API
+* Google Calendar API
 * Pydantic
 * Requests
 * Psycopg2
 * Python Dotenv
 
+
 ## Estrutura do Projeto
 
 ```text
-Projeto/
+projeto/
 │
 ├── app.py
 ├── main.py
 ├── database.py
+├── google_calendar.py
 ├── requirements.txt
-├── requirements_fastapi.txt
 ├── .env
+├── credentials.json
 └── README.md
 ```
 
@@ -53,90 +55,75 @@ Projeto/
 
 ### app.py
 
-Responsável por receber as mensagens enviadas pelo Telegram através do webhook e encaminhá-las para a API principal.
-
+Responsável por receber as mensagens enviadas pelo Telegram através do webhook e encaminhá-las para a API principal desenvolvida em FastAPI.
 
 ### main.py
 
-Contém toda a lógica da aplicação.
-
-É responsável por:
-
-* receber as mensagens;
-* recuperar o histórico do usuário;
-* enviar a mensagem para a IA;
-* interpretar a resposta;
-* realizar operações no banco de dados;
-* enviar a resposta ao usuário.
+Arquivo principal da aplicação. Ele recebe a mensagem do usuário, busca o histórico da conversa, chama a IA da Groq, interpreta a intenção, monta a resposta e envia a mensagem de volta para o Telegram.
 
 ### database.py
 
-Responsável pelas operações de banco de dados, incluindo:
+Responsável pela conexão com o PostgreSQL e pelas operações de banco de dados, como salvar mensagens, buscar histórico, salvar eventos, listar compromissos e cancelar eventos.
 
-* criação das tabelas;
-* armazenamento do histórico;
-* cadastro de eventos;
-* consulta de eventos;
-* cancelamento de eventos.
+### google_calendar.py
 
-## Funcionamento
-
-O chatbot segue o seguinte fluxo:
-
-1. O usuário envia uma mensagem pelo Telegram.
-2. O webhook recebe essa mensagem.
-3. A mensagem é enviada para a API desenvolvida em FastAPI.
-4. O histórico da conversa é recuperado.
-5. A IA interpreta a intenção do usuário.
-6. O sistema executa a operação correspondente.
-7. A resposta é enviada novamente ao Telegram.
-
-## Exemplos de Uso
-
-### Agendar
-
-> Marque uma reunião amanhã às 14h na sala de reuniões.
+Responsável pela autenticação com a API do Google Calendar e pela criação de eventos diretamente na agenda do usuário.
 
 
-### Consultar
+## Funcionalidades
 
-> Quais compromissos tenho amanhã?
-
-
-### Cancelar
-
-> Cancelar a reunião de amanhã às 14h.
-
-
-## Tratamento de Erros
-
-O sistema realiza verificações para:
-
-* mensagens inválidas;
-* datas em formato incorreto;
-* ausência de informações obrigatórias;
-* conflitos de horários;
-* falhas de comunicação com a IA.
+* Marcar compromissos;
+* Consultar compromissos cadastrados;
+* Cancelar compromissos;
+* Interpretar mensagens com linguagem natural;
+* Armazenar histórico de conversa;
+* Criar eventos no Google Calendar;
+* Enviar respostas automáticas pelo Telegram.
 
 
-## Possíveis Melhorias
+## Variáveis de Ambiente
 
-* Alteração de compromissos existentes;
-* Definição de duração do evento;
-* Envio de lembretes automáticos;
-* Interface Web para gerenciamento;
-* Suporte a múltiplos idiomas;
-* Melhor tratamento de exceções e logs.
+Crie um arquivo `.env` na raiz do projeto com as seguintes informações:
+
+```env
+GROQ_API_KEY=sua_chave_groq
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/seubanco
+TELEGRAM_BOT_TOKEN=seu_token_do_telegram
+```
+
+
+## Configuração do Google Calendar
+
+Para utilizar a integração com o Google Calendar, é necessário:
+
+1. Criar um projeto no Google Cloud;
+2. Ativar a Google Calendar API;
+3. Criar credenciais OAuth;
+4. Baixar o arquivo `credentials.json`;
+5. Colocar o arquivo na raiz do projeto.
+
+Na primeira execução, o sistema abrirá uma janela do navegador para autorização da conta Google. Após a autorização, será criado automaticamente o arquivo `token.pickle`.
+
+
+## Observações
+
+* O banco de dados precisa existir antes da execução do projeto.
+* O sistema cria as tabelas automaticamente, mas não cria o banco.
+* O arquivo `.env` não deve ser enviado para o GitHub.
+* O arquivo `credentials.json` também não deve ser publicado em repositórios públicos.
+* O bot utiliza o `chat_id` do Telegram para identificar cada usuário.
+
 
 ## Equipe
 
-Hugo Martins 
+> Hugo Martins
+>
+> João Marcos
+>
+> Karine Araujo dos Santos
+>
+> Mariana Nascimento
 
-João Marcos
-
-Karine Araujo dos Santos
-
-Mariana Nascimento
 
 ## Licença
 
