@@ -1,39 +1,37 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-BACKEND_URL = "http://localhost:8000/mensagem"  # FastAPI
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+BACKEND_URL = "http://localhost:8000/mensagem"
 
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
-    print("📩 Mensagem recebida:", data)
+    print("Mensagem recebida:", data)
 
-    # ✅ Formato Telegram
     message = data.get("message", {})
-    texto = message.get("text", "")
-    chat_id = message.get("chat", {}).get("id")
+    texto = message.get("text")
 
-    if not texto or not chat_id:
+    if not texto:
         return jsonify({"status": "no message"}), 200
 
-    telefone = str(chat_id)  # usamos o chat_id no lugar do telefone
+    chat_id = message.get("chat", {}).get("id")
 
-    # ── Envia para o FastAPI ────────────────────────────────────────────────────
+    if not chat_id:
+        return jsonify({"status": "no chat id"}), 200
+
     try:
         requests.post(
             BACKEND_URL,
-            json={"mensagem": texto, "telefone": telefone},
-            timeout=30,
+            json={
+                "mensagem": texto,
+                "chat_id": str(chat_id)
+            },
+            timeout=30
         )
     except Exception as e:
         print("Erro ao enviar para backend:", e)
@@ -43,8 +41,8 @@ def webhook():
 
 @app.route("/teste", methods=["GET"])
 def teste():
-    return "Webhook rodando 🚀"
+    return "Webhook Telegram rodando"
 
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(port=5000, debug=True)
