@@ -77,7 +77,10 @@ def buscar_historico(chat_id: str, limite: int = 10):
     cur.close()
     conn.close()
 
-    return [{"role": role, "content": conteudo} for role, conteudo in reversed(rows)]
+    return [
+        {"role": role, "content": conteudo}
+        for role, conteudo in reversed(rows)
+    ]
 
 
 def salvar_evento(evento: str, data: str, hora: str, local: str):
