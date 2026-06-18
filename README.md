@@ -105,15 +105,6 @@ Para utilizar a integração com o Google Calendar, é necessário:
 Na primeira execução, o sistema abrirá uma janela do navegador para autorização da conta Google. Após a autorização, será criado automaticamente o arquivo `token.pickle`.
 
 
-## Observações
-
-* O banco de dados precisa existir antes da execução do projeto.
-* O sistema cria as tabelas automaticamente, mas não cria o banco.
-* O arquivo `.env` não deve ser enviado para o GitHub.
-* O arquivo `credentials.json` também não deve ser publicado em repositórios públicos.
-* O bot utiliza o `chat_id` do Telegram para identificar cada usuário.
-
-
 ## Equipe
 
 > Hugo Martins
