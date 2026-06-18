@@ -107,13 +107,13 @@ Na primeira execução, o sistema abrirá uma janela do navegador para autoriza�
 
 ## Equipe
 
-> Hugo Martins
+> Hugo Martins Nobrega de Oliveira
 >
-> João Marcos
+> João Marcos Lopes de Oliveira
 >
 > Karine Araujo dos Santos
 >
-> Mariana Nascimento
+> Mariana Nascimento Pinheiro
 
 
 ## Licença
